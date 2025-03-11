@@ -1,0 +1,221 @@
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+model user {
+  id             Int       @id @default(autoincrement())
+  email          String
+  password       String?
+  phone          String
+  googleId       String?
+  email_verified Boolean
+  phone_verified Boolean
+  created_at     DateTime  @default(now())
+  updated_at     DateTime  @updatedAt
+  website        website[]
+}
+
+model website {
+  id               Int               @id @default(autoincrement())
+  user_id          Int
+  name             String
+  subdomain        String            @unique
+  custom_domain    String?           @unique
+  country_code     String
+  language_code    String
+  created_at       DateTime          @default(now())
+  updated_at       DateTime          @updatedAt
+  user             user              @relation(fields: [user_id], references: [id])
+  details          details?
+  shop             shop?
+  theme            theme?
+  home             home?
+  instagram_tokens instagram_tokens?
+  links            links?
+  info             info[]
+  faq              faq[]
+  metadata         metadata?
+  banner           banner?
+}
+
+model details {
+  id             Int      @id @default(autoincrement())
+  website_id     Int      @unique
+  logo           String?
+  wb_number      String
+  ig_client_id   String?
+  number         String
+  email          String
+  address        String?
+  business_hours Json?
+  created_at     DateTime @default(now())
+  updated_at     DateTime @updatedAt
+  website        website  @relation(fields: [website_id], references: [id])
+}
+
+model metadata {
+  id          Int     @id @default(autoincrement())
+  website_id  Int     @unique
+  title       String
+  description String
+  keywords    Json
+  website     website @relation(fields: [website_id], references: [id])
+}
+
+model theme {
+  id         Int      @id @default(autoincrement())
+  website_id Int      @unique
+  template   String
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+  colors     colors?
+  website    website  @relation(fields: [website_id], references: [id])
+}
+
+model colors {
+  id         Int      @id @default(autoincrement())
+  theme_id   Int      @unique
+  primary100 String
+  primary200 String
+  primary300 String
+  accent100  String
+  accent200  String
+  text100    String
+  text200    String
+  bg100      String
+  bg200      String
+  bg300      String
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+  theme      theme    @relation(fields: [theme_id], references: [id])
+}
+
+model shop {
+  id         Int          @id @default(autoincrement())
+  website_id Int          @unique
+  WB_number  String
+  created_at DateTime     @default(now())
+  updated_at DateTime     @updatedAt
+  website    website      @relation(fields: [website_id], references: [id])
+  product    product[]
+  collection collection[]
+}
+
+model collection {
+  id               Int       @id @default(autoincrement())
+  WB_collection_id String    @unique
+  shop_id          Int
+  name             String
+  created_at       DateTime  @default(now())
+  updated_at       DateTime  @updatedAt
+  shop             shop      @relation(fields: [shop_id], references: [id])
+  product          product[]
+}
+
+model product {
+  id                   Int             @id @default(autoincrement())
+  WB_product_id        String          @unique
+  shop_id              Int
+  collection_id        Int?
+  retailer_id          String?
+  is_hidden            Boolean?
+  product_availability String?
+  max_available        Int?
+  name                 String
+  description          String?
+  url                  String?
+  currency             String?
+  price                String
+  sale_price           String?
+  belongs_to           Int?
+  compliance_category  Int?
+  compliance_info      Int?
+  images               product_images?
+  created_at           DateTime        @default(now())
+  updated_at           DateTime        @updatedAt
+  shop                 shop            @relation(fields: [shop_id], references: [id])
+  collection           collection?     @relation(fields: [collection_id], references: [id])
+}
+
+model product_images {
+  id                 Int      @id @default(autoincrement())
+  product_id         Int      @unique
+  index              Int
+  wb_image_id        String?  @unique
+  request_image_url  String?
+  original_image_url String
+  is_active          Boolean
+  is_wb_sync         Boolean
+  created_at         DateTime @default(now())
+  updated_at         DateTime @updatedAt
+  product            product  @relation(fields: [product_id], references: [id])
+}
+
+model links {
+  id          Int      @id @default(autoincrement())
+  website_id  Int      @unique
+  type        String?
+  name        String
+  logo        String?
+  description String?
+  url         String
+  created_at  DateTime @default(now())
+  updated_at  DateTime @updatedAt
+  website     website  @relation(fields: [website_id], references: [id])
+}
+
+model home {
+  id               Int      @id @default(autoincrement())
+  website_id       Int      @unique
+  hero_headline    String
+  hero_description String
+  created_at       DateTime @default(now())
+  updated_at       DateTime @updatedAt
+  website          website  @relation(fields: [website_id], references: [id])
+}
+
+model info {
+  id          Int      @id @default(autoincrement())
+  website_id  Int
+  headline    String?
+  description String?
+  created_at  DateTime @default(now())
+  updated_at  DateTime @updatedAt
+  website     website  @relation(fields: [website_id], references: [id])
+}
+
+model faq {
+  id         Int      @id @default(autoincrement())
+  website_id Int
+  question   String
+  answer     String
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+  website    website  @relation(fields: [website_id], references: [id])
+}
+
+model banner {
+  id          Int      @id @default(autoincrement())
+  website_id  Int      @unique
+  headline    String
+  description String
+  created_at  DateTime @default(now())
+  updated_at  DateTime @updatedAt
+  website     website  @relation(fields: [website_id], references: [id])
+}
+
+model instagram_tokens {
+  id          Int      @id @default(autoincrement())
+  website_id  Int      @unique
+  accessToken String   @unique
+  expiresAt   DateTime
+  created_at  DateTime @default(now())
+  updated_at  DateTime @updatedAt
+  website     website  @relation(fields: [website_id], references: [id])
+}
